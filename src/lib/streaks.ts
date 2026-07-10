@@ -1,6 +1,6 @@
 export type Checkin = {
   checkin_date: string
-  status: 'done'
+  status: 'done' | 'skipped' | 'partial'
 }
 
 export type StreakResult = {
