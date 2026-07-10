@@ -40,13 +40,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-
+  if (path === '/dashboard') {
+    supabaseResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+  }
 
   return supabaseResponse
 }
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|dashboard$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
   ],
 }
