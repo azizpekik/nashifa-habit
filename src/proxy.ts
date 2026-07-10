@@ -1,50 +1,25 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
 
-const protectedRoutes = ['/onboarding', '/dashboard', '/dashboard/reports', '/dashboard/settings']
+const protectedRoutes = ['/onboarding', '/dashboard/reports', '/dashboard/settings']
 const publicRoutes = ['/login', '/signup', '/forgot-password', '/']
 
 export async function proxy(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
-  const { data: { user } } = await supabase.auth.getUser()
-
   const path = request.nextUrl.pathname
+
+  const authCookie = request.cookies.get('sb-orowixgzamdvrzloumpx-auth-token')
+
   const isProtected = protectedRoutes.some((r) => path.startsWith(r))
   const isPublic = publicRoutes.some((r) => path === r)
 
-  if (isProtected && !user) {
+  if (isProtected && !authCookie) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (isPublic && user && path !== '/') {
+  if (isPublic && authCookie && path !== '/') {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  if (path === '/dashboard') {
-    supabaseResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-  }
-
-  return supabaseResponse
+  return NextResponse.next()
 }
 
 export const config = {
