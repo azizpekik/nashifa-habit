@@ -19,17 +19,11 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  const response = NextResponse.next()
-
-  if (path === '/dashboard') {
-    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-  }
-
-  return response
+  return NextResponse.next()
 }
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|dashboard$).*)',
   ],
 }
