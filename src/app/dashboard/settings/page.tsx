@@ -72,7 +72,7 @@ export default function SettingsPage() {
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function openWaDialog() {
     setWaNumber('')

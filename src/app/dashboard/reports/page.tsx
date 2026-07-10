@@ -103,7 +103,7 @@ export default function ReportsPage() {
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function getToday(): string {
     return new Date().toLocaleDateString('en-CA', { timeZone: profileTz })

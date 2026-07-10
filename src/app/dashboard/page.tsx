@@ -181,7 +181,7 @@ export default function DashboardPage() {
     setLoading(false)
   }
 
-  useEffect(() => { reload() }, [])
+  useEffect(() => { reload() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const tz = profile?.timezone || 'Asia/Jakarta'
   const todayDayNum = getTodayDayNum(tz)
