@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Bell, BellOff, LogOut, Leaf, Smartphone, CheckCircle2 } from 'lucide-react'
+import { Bell, BellOff, LogOut, Leaf, Smartphone, CheckCircle2, MessageCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -257,6 +257,22 @@ export default function SettingsPage() {
                       />
                     </div>
                   </button>
+
+                  <a
+                    href="https://wa.me/6287767981589?text=halo%20nashifa%2C%20tolong%20cek%20habit%20aku%20dong"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 px-5 py-4 text-left hover:bg-muted/30 transition-colors active:scale-[0.99]"
+                  >
+                    <MessageCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">Konsultasi Habit 24/7</p>
+                      <p className="text-[12px] text-muted-foreground">
+                        Chat langsung dengan Kak Nashifa
+                      </p>
+                    </div>
+                    <span className="text-[11px] font-medium text-green-600 shrink-0">Chat</span>
+                  </a>
                 </div>
               </div>
             </section>
