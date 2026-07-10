@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         onSuccess={() => {
           setShowCreateSheet(false)
           if (pathname === '/dashboard') {
-            router.refresh()
+            window.dispatchEvent(new Event('habit-created'))
           } else {
             router.push('/dashboard')
           }

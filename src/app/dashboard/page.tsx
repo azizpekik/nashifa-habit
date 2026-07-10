@@ -178,7 +178,12 @@ export default function DashboardPage() {
     setLoading(false)
   }
 
-  useEffect(() => { reload() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    reload()
+    const handler = () => reload()
+    window.addEventListener('habit-created', handler)
+    return () => window.removeEventListener('habit-created', handler)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const tz = profile?.timezone || 'Asia/Jakarta'
   const todayDayNum = getTodayDayNum(tz)
