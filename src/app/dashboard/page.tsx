@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button'
 import HabitCard from '@/components/habit-card'
 import HabitSheet from '@/components/habit-sheet'
 import ProgressRing from '@/components/progress-ring'
-import BottomNav from '@/components/bottom-nav'
 import StreakShareDialog from '@/components/streak-share-dialog'
 import {
   AlertDialog,
@@ -106,8 +105,6 @@ export default function DashboardPage() {
   const [showNonScheduled, setShowNonScheduled] = useState(false)
 
   const [editHabit, setEditHabit] = useState<Habit | null>(null)
-  const [showCreateSheet, setShowCreateSheet] = useState(false)
-
   const [deleteHabit, setDeleteHabit] = useState<Habit | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [showDisableReminder, setShowDisableReminder] = useState(false)
@@ -514,12 +511,6 @@ export default function DashboardPage() {
         habit={editHabit ?? undefined}
       />
 
-      <HabitSheet
-        open={showCreateSheet}
-        onOpenChange={setShowCreateSheet}
-        onSuccess={reload}
-      />
-
       <AlertDialog open={!!deleteHabit} onOpenChange={(o) => !o && setDeleteHabit(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -553,8 +544,6 @@ export default function DashboardPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <BottomNav onAddClick={() => setShowCreateSheet(true)} />
       </div>
 
       <StreakShareDialog

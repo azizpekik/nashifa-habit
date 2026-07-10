@@ -9,8 +9,6 @@ import {
   Card,
   CardContent,
 } from '@/components/ui/card'
-import BottomNav from '@/components/bottom-nav'
-import HabitSheet from '@/components/habit-sheet'
 import StreakShareDialog from '@/components/streak-share-dialog'
 import { Flame, Trophy, TrendingUp, BarChart3, Share2 } from 'lucide-react'
 
@@ -51,7 +49,6 @@ export default function ReportsPage() {
   const [profileTz, setProfileTz] = useState('Asia/Jakarta')
   const [userName, setUserName] = useState('')
   const [loading, setLoading] = useState(true)
-  const [showCreateSheet, setShowCreateSheet] = useState(false)
   const [shareHabit, setShareHabit] = useState<Habit | null>(null)
 
   async function load() {
@@ -214,28 +211,19 @@ export default function ReportsPage() {
 
   if (habits.length === 0) {
     return (
-      <>
-        <div className="mx-auto w-full max-w-lg px-5 pt-12 pb-28">
-          <p className="text-[13px] text-muted-foreground font-medium">Your progress</p>
-          <h1 className="text-2xl font-semibold mt-0.5 tracking-tight">Laporan</h1>
-          <div className="text-center py-20">
-            <div className="w-20 h-20 rounded-3xl bg-accent/40 flex items-center justify-center mx-auto mb-5">
-              <BarChart3 className="w-8 h-8 text-primary" />
-            </div>
-            <p className="font-semibold text-lg">Belum ada laporan</p>
-            <p className="text-sm text-muted-foreground mt-1.5 max-w-[240px] mx-auto">
-              Buat habit dan mulai check-in untuk melihat statistik
-            </p>
+      <div className="mx-auto w-full max-w-lg px-5 pt-12 pb-28">
+        <p className="text-[13px] text-muted-foreground font-medium">Your progress</p>
+        <h1 className="text-2xl font-semibold mt-0.5 tracking-tight">Laporan</h1>
+        <div className="text-center py-20">
+          <div className="w-20 h-20 rounded-3xl bg-accent/40 flex items-center justify-center mx-auto mb-5">
+            <BarChart3 className="w-8 h-8 text-primary" />
           </div>
-          <BottomNav onAddClick={() => setShowCreateSheet(true)} />
+          <p className="font-semibold text-lg">Belum ada laporan</p>
+          <p className="text-sm text-muted-foreground mt-1.5 max-w-[240px] mx-auto">
+            Buat habit dan mulai check-in untuk melihat statistik
+          </p>
         </div>
-
-        <HabitSheet
-          open={showCreateSheet}
-          onOpenChange={setShowCreateSheet}
-          onSuccess={() => router.push('/dashboard')}
-        />
-      </>
+      </div>
     )
   }
 
@@ -376,14 +364,7 @@ export default function ReportsPage() {
         })}
       </div>
 
-      <BottomNav onAddClick={() => setShowCreateSheet(true)} />
       </div>
-
-      <HabitSheet
-        open={showCreateSheet}
-        onOpenChange={setShowCreateSheet}
-        onSuccess={() => router.push('/dashboard')}
-      />
 
       <StreakShareDialog
         key={shareHabit?.id || 'none'}

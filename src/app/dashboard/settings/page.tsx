@@ -4,8 +4,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import BottomNav from '@/components/bottom-nav'
-import HabitSheet from '@/components/habit-sheet'
 import { Bell, BellOff, LogOut, Leaf, Smartphone, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -42,8 +40,6 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [togglingReminder, setTogglingReminder] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
-  const [showCreateSheet, setShowCreateSheet] = useState(false)
-
   const [showWaDialog, setShowWaDialog] = useState(false)
   const [waStep, setWaStep] = useState<'phone' | 'otp' | 'success'>('phone')
   const [waNumber, setWaNumber] = useState('')
@@ -166,148 +162,140 @@ export default function SettingsPage() {
 
   return (
     <>
-    <div className="min-h-screen pb-28">
-      <div className="mx-auto w-full max-w-lg px-5 pt-12">
-        <div>
-          <p className="text-[13px] text-muted-foreground font-medium">Preferences</p>
-          <h1 className="text-2xl font-semibold mt-0.5 tracking-tight">Pengaturan</h1>
-        </div>
+      <div className="min-h-screen pb-28">
+        <div className="mx-auto w-full max-w-lg px-5 pt-12">
+          <div>
+            <p className="text-[13px] text-muted-foreground font-medium">Preferences</p>
+            <h1 className="text-2xl font-semibold mt-0.5 tracking-tight">Pengaturan</h1>
+          </div>
 
-        <div className="mt-8 space-y-6">
-          {/* Account */}
-          <section>
-            <h2 className="text-[11px] font-medium text-muted-foreground mb-2.5 uppercase tracking-wider">Akun</h2>
-            <div className="rounded-2xl bg-card shadow-[0_1px_4px_0_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.03)] overflow-hidden">
-              {profile && (
-                <div className="px-5 py-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">{profile.email}</p>
-                      <p className="text-[12px] text-muted-foreground">Tersinkronisasi</p>
+          <div className="mt-8 space-y-6">
+            {/* Account */}
+            <section>
+              <h2 className="text-[11px] font-medium text-muted-foreground mb-2.5 uppercase tracking-wider">Akun</h2>
+              <div className="rounded-2xl bg-card shadow-[0_1px_4px_0_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.03)] overflow-hidden">
+                {profile && (
+                  <div className="px-5 py-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{profile.email}</p>
+                        <p className="text-[12px] text-muted-foreground">Tersinkronisasi</p>
+                      </div>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted text-sm text-muted-foreground hover:text-foreground transition-colors active:scale-95"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        Keluar
+                      </button>
                     </div>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted text-sm text-muted-foreground hover:text-foreground transition-colors active:scale-95"
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                      Keluar
-                    </button>
                   </div>
-                </div>
-              )}
-            </div>
-          </section>
+                )}
+              </div>
+            </section>
 
-          {/* WhatsApp */}
-          <section>
-            <h2 className="text-[11px] font-medium text-muted-foreground mb-2.5 uppercase tracking-wider">WhatsApp</h2>
-            <div className="rounded-2xl bg-card shadow-[0_1px_4px_0_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.03)] overflow-hidden">
-              <div className="divide-y divide-border/50">
-                <div className="flex items-center gap-3 px-5 py-4">
-                  <div className="w-4 h-4 text-muted-foreground flex-shrink-0 flex items-center justify-center">
-                    <span className="text-xs">📱</span>
+            {/* WhatsApp */}
+            <section>
+              <h2 className="text-[11px] font-medium text-muted-foreground mb-2.5 uppercase tracking-wider">WhatsApp</h2>
+              <div className="rounded-2xl bg-card shadow-[0_1px_4px_0_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.03)] overflow-hidden">
+                <div className="divide-y divide-border/50">
+                  <div className="flex items-center gap-3 px-5 py-4">
+                    <div className="w-4 h-4 text-muted-foreground flex-shrink-0 flex items-center justify-center">
+                      <span className="text-xs">📱</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">Nomor WhatsApp</p>
+                      <p className="text-[12px] text-muted-foreground">
+                        {profile?.wa_number || '-'}
+                      </p>
+                    </div>
+                    {profile?.wa_verified ? (
+                      <span className="flex items-center gap-1 text-[11px] font-medium text-green-600">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Terverifikasi
+                      </span>
+                    ) : (
+                      <button
+                        onClick={openWaDialog}
+                        className="text-[11px] font-medium text-primary hover:underline"
+                      >
+                        Verifikasi
+                      </button>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">Nomor WhatsApp</p>
-                    <p className="text-[12px] text-muted-foreground">
-                      {profile?.wa_number || '-'}
-                    </p>
-                  </div>
-                  {profile?.wa_verified ? (
-                    <span className="flex items-center gap-1 text-[11px] font-medium text-green-600">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Terverifikasi
-                    </span>
-                  ) : (
-                    <button
-                      onClick={openWaDialog}
-                      className="text-[11px] font-medium text-primary hover:underline"
-                    >
-                      Verifikasi
-                    </button>
-                  )}
-                </div>
 
-                <button
-                  onClick={handleToggleClick}
-                  disabled={togglingReminder}
-                  className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-muted/30 transition-colors active:scale-[0.99]"
-                >
-                  {optedOut ? (
-                    <BellOff className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                  ) : (
-                    <Bell className="w-4 h-4 text-primary flex-shrink-0" />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">
-                      {optedOut ? 'Reminder nonaktif' : 'Reminder aktif'}
-                    </p>
-                    <p className="text-[12px] text-muted-foreground">
-                      {optedOut
-                        ? 'Klik untuk mengaktifkan kembali'
-                        : 'Pengingat WhatsApp untuk habit harian'
-                      }
-                    </p>
-                  </div>
-                  <div
-                    className={`w-10 h-6 rounded-full transition-colors flex items-center px-0.5 ${
-                      optedOut ? 'bg-muted' : 'bg-primary'
-                    }`}
+                  <button
+                    onClick={handleToggleClick}
+                    disabled={togglingReminder}
+                    className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-muted/30 transition-colors active:scale-[0.99]"
                   >
+                    {optedOut ? (
+                      <BellOff className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    ) : (
+                      <Bell className="w-4 h-4 text-primary flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">
+                        {optedOut ? 'Reminder nonaktif' : 'Reminder aktif'}
+                      </p>
+                      <p className="text-[12px] text-muted-foreground">
+                        {optedOut
+                          ? 'Klik untuk mengaktifkan kembali'
+                          : 'Pengingat WhatsApp untuk habit harian'
+                        }
+                      </p>
+                    </div>
                     <div
-                      className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                        optedOut ? 'translate-x-0' : 'translate-x-4'
+                      className={`w-10 h-6 rounded-full transition-colors flex items-center px-0.5 ${
+                        optedOut ? 'bg-muted' : 'bg-primary'
                       }`}
-                    />
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                          optedOut ? 'translate-x-0' : 'translate-x-4'
+                        }`}
+                      />
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            {/* About */}
+            <section>
+              <h2 className="text-[11px] font-medium text-muted-foreground mb-2.5 uppercase tracking-wider">Tentang</h2>
+              <div className="rounded-2xl bg-card shadow-[0_1px_4px_0_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.03)] px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+                    <Leaf className="w-5 h-5 text-primary-foreground" />
                   </div>
-                </button>
-              </div>
-            </div>
-          </section>
-
-          {/* About */}
-          <section>
-            <h2 className="text-[11px] font-medium text-muted-foreground mb-2.5 uppercase tracking-wider">Tentang</h2>
-            <div className="rounded-2xl bg-card shadow-[0_1px_4px_0_rgba(0,0,0,0.06),0_0_0_1px_rgba(0,0,0,0.03)] px-5 py-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                  <Leaf className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Nashifa Habit</p>
-                  <p className="text-[12px] text-muted-foreground">Version 1.0.0</p>
+                  <div>
+                    <p className="text-sm font-medium">Nashifa Habit</p>
+                    <p className="text-[12px] text-muted-foreground">Version 1.0.0</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+          </div>
         </div>
+
+        <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Nonaktifkan Semua Reminder?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Kamu tidak akan menerima pengingat WhatsApp untuk habit apapun sampai diaktifkan kembali.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Batal</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmToggle}>
+                Ya, Nonaktifkan
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
-
-      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Nonaktifkan Semua Reminder?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Kamu tidak akan menerima pengingat WhatsApp untuk habit apapun sampai diaktifkan kembali.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmToggle}>
-              Ya, Nonaktifkan
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <BottomNav onAddClick={() => setShowCreateSheet(true)} />
-      </div>
-
-      <HabitSheet
-        open={showCreateSheet}
-        onOpenChange={setShowCreateSheet}
-        onSuccess={() => router.push('/dashboard')}
-      />
 
       <Dialog open={showWaDialog} onOpenChange={setShowWaDialog}>
         <DialogContent className="sm:max-w-sm">

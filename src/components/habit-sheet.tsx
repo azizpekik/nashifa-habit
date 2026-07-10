@@ -190,7 +190,7 @@ export default function HabitSheet({ open, onOpenChange, onSuccess, habit }: Pro
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent>
+        <SheetContent onOpenAutoFocus={(e) => e.preventDefault()}>
           <SheetHeader>
             <SheetTitle>{isEdit ? 'Edit Habit' : 'Tambah Habit'}</SheetTitle>
             <SheetDescription>
