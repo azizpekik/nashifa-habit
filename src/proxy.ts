@@ -5,7 +5,7 @@ const protectedRoutes = ['/onboarding', '/dashboard', '/dashboard/reports', '/da
 const publicRoutes = ['/login', '/signup', '/forgot-password', '/']
 
 export async function proxy(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
+  const response = NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,9 +17,8 @@ export async function proxy(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            response.cookies.set(name, value, options)
           )
         },
       },
@@ -41,11 +40,10 @@ export async function proxy(request: NextRequest) {
   }
 
   if (path === '/dashboard') {
-    supabaseResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-    supabaseResponse.headers.set('x-dashboard-debug', 'proxy-bypass')
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
   }
 
-  return supabaseResponse
+  return response
 }
 
 export const config = {
