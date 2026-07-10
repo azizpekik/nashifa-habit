@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -72,7 +71,6 @@ const REFERRAL_OPTIONS = [
 ]
 
 export default function OnboardingPage() {
-  const router = useRouter()
   const [step, setStep] = useState(0)
 
   const [timezone, setTimezone] = useState('Asia/Jakarta')
@@ -151,7 +149,7 @@ export default function OnboardingPage() {
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); router.push('/login'); return }
+    if (!user) { setLoading(false); window.location.href = '/login'; return }
 
     const { error: profileErr } = await supabase
       .from('profiles')
@@ -201,7 +199,7 @@ export default function OnboardingPage() {
     if (user) {
       await supabase.from('profiles').update({ referral_source: source }).eq('id', user.id)
     }
-    router.push('/dashboard')
+    window.location.href = '/dashboard'
   }
 
   return (
