@@ -6,7 +6,7 @@ const publicRoutes = ['/login', '/signup', '/forgot-password', '/']
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
 
-  const authCookie = request.cookies.get('sb-orowixgzamdvrzloumpx-auth-token')
+  const authCookie = request.cookies.getAll().some((c) => c.name.startsWith('sb-orowixgzamdvrzloumpx-auth-token'))
 
   const isProtected = protectedRoutes.some((r) => path.startsWith(r))
   const isPublic = publicRoutes.some((r) => path === r)
