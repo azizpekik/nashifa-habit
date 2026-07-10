@@ -1,0 +1,2 @@
+ALTER TABLE habits ADD COLUMN color text NOT NULL DEFAULT '#22c55e';
+ALTER TABLE habits ADD COLUMN sort_order integer NOT NULL DEFAULT 0;
