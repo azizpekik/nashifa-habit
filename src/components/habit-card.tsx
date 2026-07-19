@@ -1,8 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Check } from 'lucide-react'
+import { GripVertical, Check, Ellipsis, Archive } from 'lucide-react'
 
 type Props = {
   id: string
@@ -16,6 +17,7 @@ type Props = {
   daysLabel?: string
   onCheck: () => void
   onClick: () => void
+  onArchive?: () => void
 }
 
 export default function HabitCard({
@@ -30,10 +32,12 @@ export default function HabitCard({
   daysLabel,
   onCheck,
   onClick,
+  onArchive,
 }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
   })
+  const [showMenu, setShowMenu] = useState(false)
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -90,9 +94,40 @@ export default function HabitCard({
         </span>
       )}
 
+      {onArchive && (
+        <div className="relative">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu) }}
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
+          >
+            <Ellipsis className="h-4 w-4" />
+          </button>
+          {showMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+              <div className="absolute right-0 bottom-full mb-1 z-50 min-w-[140px] rounded-xl bg-popover shadow-lg border py-1">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowMenu(false)
+                    onArchive?.()
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-xs text-left hover:bg-muted transition-colors"
+                >
+                  <Archive className="w-3.5 h-3.5" />
+                  Arsipkan
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       <button
         type="button"
-        className="flex h-7 w-7 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100 active:cursor-grabbing touch:opacity-100"
+        className="flex h-7 w-7 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground hover:bg-muted active:cursor-grabbing"
         {...attributes}
         {...listeners}
       >

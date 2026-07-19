@@ -24,7 +24,10 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (!profile) {
-    return NextResponse.json({ ok: true })
+    return NextResponse.json(
+      { error: 'Nomor WhatsApp tidak terdaftar' },
+      { status: 404 }
+    )
   }
 
   if (profile.wa_otp_expires_at) {

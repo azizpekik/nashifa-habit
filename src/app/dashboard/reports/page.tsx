@@ -21,6 +21,7 @@ type Habit = {
   color: string
   is_active: boolean
   created_at: string
+  template_item_id: string | null
   schedules: Schedule[]
 }
 type HabitStreak = { current: number; longest: number; consistency30: number; totalCheckins: number }
@@ -68,6 +69,7 @@ export default function ReportsPage() {
       .from('habits')
       .select('*, schedules(*)')
       .eq('user_id', user.id)
+      .eq('is_active', true)
       .order('sort_order')
       .order('created_at')
 

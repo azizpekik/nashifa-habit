@@ -7,7 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import { computeStreaks, type Checkin } from '@/lib/streaks'
 import { DndContext, DragEndEvent, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
-import { ChevronDown, ChevronRight, Bell, BellOff, Smartphone } from 'lucide-react'
+import { ChevronDown, ChevronRight, Bell, BellOff, Smartphone, Sparkles } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import HabitCard from '@/components/habit-card'
 import HabitSheet from '@/components/habit-sheet'
@@ -46,6 +47,7 @@ type Habit = {
   sort_order: number
   is_active: boolean
   created_at: string
+  template_item_id: string | null
   schedules: Schedule[]
 }
 
@@ -134,6 +136,7 @@ export default function DashboardPage() {
       .from('habits')
       .select('*, schedules(*)')
       .eq('user_id', user.id)
+      .eq('is_active', true)
       .order('sort_order')
       .order('created_at')
 
@@ -306,6 +309,15 @@ export default function DashboardPage() {
     setShowDisableReminder(false)
   }
 
+  async function handleArchive(habit: Habit) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from('habits').update({ is_active: false }).eq('id', habit.id)
+    toast.success(`${habit.name} diarsipkan`)
+    reload()
+  }
+
   async function confirmDelete() {
     if (!deleteHabit) return
     setDeleting(true)
@@ -447,6 +459,7 @@ export default function DashboardPage() {
                   daysLabel={sched?.days_of_week ? labelDays(sched.days_of_week) : undefined}
                   onCheck={() => handleCheckin(habit.id)}
                   onClick={() => setEditHabit(habit)}
+                  onArchive={() => handleArchive(habit)}
                 />
               )
             })}
@@ -466,8 +479,15 @@ export default function DashboardPage() {
             <div className="mb-2 text-3xl">🌱</div>
             <p className="text-base font-medium">Belum ada habit</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Buat habit pertamamu dan mulai lacak kebiasaan baik!
+              Buat habit pertamamu atau mulai dari template siap pakai!
             </p>
+            <a
+              href="/dashboard/templates"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            >
+              <Sparkles className="w-4 h-4" />
+              Mulai dari Template
+            </a>
           </div>
         )}
       </div>
@@ -501,6 +521,7 @@ export default function DashboardPage() {
                     daysLabel={sched?.days_of_week ? labelDays(sched.days_of_week) : undefined}
                     onCheck={() => handleCheckin(habit.id)}
                     onClick={() => setEditHabit(habit)}
+                    onArchive={() => handleArchive(habit)}
                   />
                 )
               })}

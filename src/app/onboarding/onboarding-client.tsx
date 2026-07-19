@@ -1,6 +1,7 @@
 'use client'
+/* eslint-disable react-hooks/set-state-in-effect */
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -15,7 +16,7 @@ import {
 } from '@/components/ui/select'
 import ColorPicker from '@/components/color-picker'
 import FrequencyPicker from '@/components/frequency-picker'
-import { Loader2, Check } from 'lucide-react'
+import { Loader2, Check, ExternalLink, RefreshCw } from 'lucide-react'
 
 type FrequencyType = 'everyday' | 'pickdays'
 
@@ -74,7 +75,6 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0)
 
   const [timezone, setTimezone] = useState('Asia/Jakarta')
-  const [loading, setLoading] = useState(false)
   const [startLoading, setStartLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -92,6 +92,13 @@ export default function OnboardingPage() {
 
   const [referralSource, setReferralSource] = useState('')
   const [referralOther, setReferralOther] = useState('')
+
+  const [verifyCode, setVerifyCode] = useState('')
+  const [verified, setVerified] = useState(false)
+  const [verifiedNumber, setVerifiedNumber] = useState('')
+  const [verifying, setVerifying] = useState(false)
+  const [verifyError, setVerifyError] = useState('')
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   function handleFrequencyChange(type: FrequencyType) {
     if (type === 'everyday') {
@@ -113,7 +120,7 @@ export default function OnboardingPage() {
     return true
   }
 
-  function canFinish() {
+  function canFinishStep1() {
     if (selectedRec) return true
     if (isCustomValid()) return true
     return false
@@ -142,20 +149,16 @@ export default function OnboardingPage() {
     }
   }
 
-  async function handleFinish() {
-    if (!canFinish()) return
-    setLoading(true)
-    setError('')
-
+  async function saveHabitAndSchedule() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); window.location.href = '/login'; return }
+    if (!user) { window.location.href = '/login'; return }
 
     const { error: profileErr } = await supabase
       .from('profiles')
       .update({ timezone })
       .eq('id', user.id)
-    if (profileErr) { setError('Gagal simpan preferensi'); setLoading(false); return }
+    if (profileErr) { setError('Gagal simpan preferensi'); return }
 
     const h = getHabitData()
     const { data: habit, error: habitErr } = await supabase
@@ -170,7 +173,7 @@ export default function OnboardingPage() {
       })
       .select()
       .single()
-    if (habitErr || !habit) { setError('Gagal simpan habit'); setLoading(false); return }
+    if (habitErr || !habit) { setError('Gagal simpan habit'); return }
 
     const { error: schedErr } = await supabase.from('schedules').insert({
       habit_id: habit.id,
@@ -178,29 +181,77 @@ export default function OnboardingPage() {
       send_time: h.time + ':00',
       days_of_week: h.daysOfWeek,
     })
-    if (schedErr) { setError('Gagal simpan jadwal'); setLoading(false); return }
+    if (schedErr) { setError('Gagal simpan jadwal'); return }
 
-    setLoading(false)
-    setSuccessAnim(h.name)
-    await new Promise((r) => setTimeout(r, 1500))
-    setSuccessAnim(null)
-    setStep(2)
-  }
-
-  async function handleSurvey() {
     const source = referralSource === 'lainnya' && referralOther.trim()
       ? referralOther.trim()
       : referralSource
-    if (!source) return
-
-    setLoading(true)
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
+    if (source) {
       await supabase.from('profiles').update({ referral_source: source }).eq('id', user.id)
     }
+
+    setSuccessAnim(h.name)
+    await new Promise((r) => setTimeout(r, 1500))
     window.location.href = '/dashboard'
   }
+
+  async function handleFinishStep1() {
+    if (!canFinishStep1()) return
+    setStep(2)
+  }
+
+  async function startVerify() {
+    setVerifying(true)
+    setVerifyError('')
+    setVerified(false)
+    setVerifiedNumber('')
+
+    const res = await fetch('/api/wa/start-verify', { method: 'POST' })
+    const data = await res.json()
+    if (!res.ok) {
+      setVerifyError(data.error || 'Gagal memulai verifikasi')
+      setVerifying(false)
+      return
+    }
+    setVerifyCode(data.code)
+    setVerifying(false)
+  }
+
+  const stopPolling = useCallback(() => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current)
+      pollingRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    if (step !== 3) return
+    startVerify()
+    return () => stopPolling()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step])
+
+  useEffect(() => {
+    if (step !== 3 || !verifyCode || verified) return
+
+    pollingRef.current = setInterval(async () => {
+      const res = await fetch('/api/wa/verify-status')
+      const data = await res.json()
+      if (data.verified) {
+        stopPolling()
+        setVerified(true)
+        setVerifiedNumber(data.wa_number || '')
+      }
+    }, 3000)
+
+    return () => stopPolling()
+  }, [step, verifyCode, verified, stopPolling])
+
+  useEffect(() => {
+    if (!verified) return
+    saveHabitAndSchedule()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [verified])
 
   return (
     <div className="flex min-h-screen flex-col px-5 py-10">
@@ -330,7 +381,7 @@ export default function OnboardingPage() {
           {step === 1 && (
             <div className="pt-4">
               <p className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Langkah 2 dari 2
+                Langkah 1 dari 3
               </p>
               <h1 className="mt-2 text-center text-xl font-bold tracking-tight">
                 Buat 1 Habit Pertamamu
@@ -353,7 +404,7 @@ export default function OnboardingPage() {
                         setSelectedRec(isSelected ? null : rec)
                         setShowCustomForm(false)
                       }}
-                      disabled={loading}
+                      disabled={false}
                       className={`group relative w-full rounded-2xl border p-4 text-left shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 ${
                         isSelected
                           ? 'border-primary bg-primary/5 shadow-md'
@@ -467,17 +518,10 @@ export default function OnboardingPage() {
 
               <Button
                 className="mt-6 w-full rounded-xl py-6 text-base font-semibold"
-                onClick={handleFinish}
-                disabled={!canFinish() || loading}
+                onClick={handleFinishStep1}
+                disabled={!canFinishStep1()}
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Menyimpan...
-                  </>
-                ) : (
-                  'Selesai'
-                )}
+                Lanjut
               </Button>
             </div>
           )}
@@ -493,7 +537,10 @@ export default function OnboardingPage() {
           {step === 2 && (
             <div className="flex flex-col justify-center min-h-full pt-12">
               <div className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Langkah 2 dari 3
+                </p>
+                <div className="mx-auto mt-4 mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
                   <span className="text-3xl">🎉</span>
                 </div>
                 <h1 className="text-xl font-bold tracking-tight">Hampir Selesai!</h1>
@@ -541,18 +588,105 @@ export default function OnboardingPage() {
 
               <Button
                 className="mt-8 w-full rounded-xl py-6 text-base font-semibold"
-                onClick={handleSurvey}
-                disabled={!referralSource || loading || (referralSource === 'lainnya' && !referralOther.trim())}
+                onClick={() => { if (referralSource) setStep(3) }}
+                disabled={!referralSource || (referralSource === 'lainnya' && !referralOther.trim())}
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Menyimpan...
-                  </>
-                ) : (
-                  'Selesai'
-                )}
+                Lanjut
               </Button>
+            </div>
+          )}
+        </div>
+
+        <div
+          className={`transition-all duration-500 ${
+            step === 3
+              ? 'opacity-100 translate-y-0'
+              : 'opacity-0 translate-y-4 pointer-events-none absolute inset-0'
+          }`}
+        >
+          {step === 3 && (
+            <div className="flex flex-col justify-center min-h-full pt-4">
+              <p className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Langkah 3 dari 3
+              </p>
+              <h1 className="mt-4 text-center text-xl font-bold tracking-tight">
+                Hubungkan WhatsApp
+              </h1>
+              <p className="mt-1 text-center text-sm text-muted-foreground">
+                Verifikasi nomormu untuk menerima reminder habit
+              </p>
+
+              {verifyError && (
+                <p className="mt-4 text-sm text-destructive text-center">{verifyError}</p>
+              )}
+
+              {verifying && !verifyCode && (
+                <div className="mt-10 flex flex-col items-center gap-3">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground">Menyiapkan kode verifikasi...</p>
+                </div>
+              )}
+
+              {verifyCode && !verified && (
+                <div className="mt-8 flex flex-col items-center gap-6">
+                  <div className="rounded-2xl bg-muted px-8 py-6">
+                    <p className="text-center text-xs text-muted-foreground mb-2">Kode Verifikasi</p>
+                    <p className="text-center font-mono text-4xl font-bold tracking-[0.3em] text-foreground select-all">
+                      {verifyCode}
+                    </p>
+                  </div>
+
+                  <a
+                    href={`https://wa.me/${process.env.NEXT_PUBLIC_WA_BOT_NUMBER}?text=${encodeURIComponent('DAFTAR ' + verifyCode)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full"
+                  >
+                    <Button className="w-full rounded-xl py-6 text-base font-semibold gap-2">
+                      <ExternalLink className="w-5 h-5" />
+                      Buka WhatsApp & Kirim Kode
+                    </Button>
+                  </a>
+
+                  <p className="text-xs text-muted-foreground text-center leading-relaxed px-2">
+                    Tekan tombol Kirim di WhatsApp tanpa mengubah pesan, lalu kembali ke sini.
+                  </p>
+
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Menunggu pesan kamu...
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={startVerify}
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Buat kode baru
+                  </button>
+                </div>
+              )}
+
+              {verified && (
+                <div className="mt-10 flex flex-col items-center gap-4 animate-in fade-in-0 zoom-in-95 duration-300">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                    <Check className="w-8 h-8 text-green-600" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-green-600">Terhubung ✅</p>
+                    <p className="text-sm text-muted-foreground mt-1">{verifiedNumber}</p>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Menyimpan data...
+                  </div>
+                </div>
+              )}
+
+              {error && (
+                <p className="mt-4 text-sm text-destructive text-center">{error}</p>
+              )}
             </div>
           )}
         </div>

@@ -27,6 +27,7 @@ type Habit = {
   frequency: string
   color: string
   is_active: boolean
+  template_item_id: string | null
   schedules: Schedule[]
 }
 

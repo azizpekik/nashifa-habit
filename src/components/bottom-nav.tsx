@@ -1,10 +1,11 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, BarChart3, Settings, Plus } from 'lucide-react'
+import { LayoutDashboard, BarChart3, Settings, Sparkles, Plus } from 'lucide-react'
 
 const TABS = [
   { href: '/dashboard', label: 'Hari Ini', icon: LayoutDashboard },
+  { href: '/dashboard/templates', label: 'Template', icon: Sparkles },
   { href: '/dashboard/reports', label: 'Laporan', icon: BarChart3 },
   { href: '/dashboard/settings', label: 'Pengaturan', icon: Settings },
 ] as const
