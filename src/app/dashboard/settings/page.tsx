@@ -549,8 +549,9 @@ export default function SettingsPage() {
                 <ol className="list-decimal list-inside space-y-1.5 text-muted-foreground">
                   <li>Buat habit baru dari halaman utama dengan menekan tombol <strong>+</strong></li>
                   <li>Atur jadwal — pilih jam reminder dan hari-hari dalam seminggu</li>
-                  <li>Check-in setiap hari dengan menekan lingkaran habit di dashboard</li>
+                  <li>Check-in setiap hari dengan menekan lingkaran habit di dashboard (bisa centang <strong>Done</strong>, <strong>Skipped</strong>, atau <strong>Tunda</strong>)</li>
                   <li>Jaga streak-mu tetap menyala! Streak akan terputus jika kamu melewatkan satu hari yang dijadwalkan</li>
+                  <li>Saat pertama daftar, ikuti <strong>panduan onboarding</strong> untuk mengatur habit awal dan verifikasi nomor WhatsApp</li>
                   <li>Gunakan template habit untuk memulai paket kebiasaan siap pakai</li>
                 </ol>
               </div>
@@ -577,6 +578,14 @@ export default function SettingsPage() {
                   <li className="flex items-start gap-2">
                     <span className="text-primary shrink-0 mt-0.5">•</span>
                     <span><strong>Arsip</strong> — Arsipkan habit yang sudah tidak aktif tanpa kehilangan riwayat</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary shrink-0 mt-0.5">•</span>
+                    <span><strong>Verifikasi WhatsApp</strong> — Hubungkan nomor WA kamu di Pengaturan agar reminder berjalan</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary shrink-0 mt-0.5">•</span>
+                    <span><strong>Konsultasi 24/7</strong> — Chat dengan Kak Nashifa langsung dari halaman Pengaturan untuk bantuan atau evaluasi habit</span>
                   </li>
                 </ul>
               </div>
