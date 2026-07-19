@@ -577,7 +577,7 @@ export default function AdminUsersPage() {
                               <div className="space-y-2">
                                 {groupedByDate[date].map((msg, mi) => (
                                   <div
-                                    key={msg.uuid || msg.id || `msg-${date}-${mi}`}
+                                    key={msg.uuid || `msg-${date}-${mi}`}
                                     className={`flex gap-2 ${msg.role === 'user' ? '' : 'flex-row-reverse'}`}
                                   >
                                     <div className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
